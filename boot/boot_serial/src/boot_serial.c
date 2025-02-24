@@ -132,6 +132,7 @@ static char dec_buf[MCUBOOT_SERIAL_MAX_RECEIVE_SIZE + 1];
 const struct boot_uart_funcs *boot_uf;
 static struct nmgr_hdr *bs_hdr;
 static bool bs_entry;
+static bool bs_exit;
 
 static char bs_obuf[BOOT_SERIAL_OUT_MAX];
 
@@ -1035,7 +1036,9 @@ boot_serial_input(char *buf, int len)
             bs_rc_rsp(0);
             break;
         case NMGR_ID_RESET:
-            bs_reset(buf, len);
+            // Auterion - instead of reset we will boot first image
+            //bs_reset(buf, len);
+            bs_exit = true;
             break;
         default:
             bs_rc_rsp(MGMT_ERR_ENOTSUP);
@@ -1209,7 +1212,7 @@ boot_serial_read_console(const struct boot_uart_funcs *f,int timeout_in_ms)
     max_input = sizeof(in_buf);
 
     off = 0;
-    while (timeout_in_ms > 0 || bs_entry) {
+    while (!bs_exit && (timeout_in_ms > 0 || bs_entry)) {
         /*
          * Don't enter CPU idle state here if timeout based serial recovery is
          * used as otherwise the boot process hangs forever, waiting for input
@@ -1273,6 +1276,7 @@ void
 boot_serial_start(const struct boot_uart_funcs *f, int timeout_in_ms)
 {
     bs_entry = timeout_in_ms == 0;
+    bs_exit = false;
     boot_serial_read_console(f,timeout_in_ms);
 }
 
