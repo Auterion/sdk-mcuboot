@@ -1017,6 +1017,7 @@ boot_serial_input(char *buf, int len)
             bs_list_set(hdr->nh_op, buf, len);
             break;
         case IMGMGR_NMGR_ID_UPLOAD:
+            bs_entry = true; // Auterion - stop timeout if we're uploading
             bs_upload(buf, len);
             break;
         default:
@@ -1214,21 +1215,21 @@ boot_serial_read_console(const struct boot_uart_funcs *f,int timeout_in_ms)
          * used as otherwise the boot process hangs forever, waiting for input
          * from serial console (if single-thread mode is used).
          */
-#ifndef MCUBOOT_SERIAL_WAIT_FOR_DFU
+//#ifndef MCUBOOT_SERIAL_WAIT_FOR_DFU
         if (allow_idle == true) {
             MCUBOOT_CPU_IDLE();
             allow_idle = false;
         }
-#endif
+//#endif
         MCUBOOT_WATCHDOG_FEED();
-#ifdef MCUBOOT_SERIAL_WAIT_FOR_DFU
+//#ifdef MCUBOOT_SERIAL_WAIT_FOR_DFU
         uint32_t start = k_uptime_get_32();
-#endif
+//#endif
         rc = f->read(in_buf + off, sizeof(in_buf) - off, &full_line);
         if (rc <= 0 && !full_line) {
-#ifndef MCUBOOT_SERIAL_WAIT_FOR_DFU
+//#ifndef MCUBOOT_SERIAL_WAIT_FOR_DFU
             allow_idle = true;
-#endif
+//#endif
             goto check_timeout;
         }
         off += rc;
@@ -1257,9 +1258,9 @@ boot_serial_read_console(const struct boot_uart_funcs *f,int timeout_in_ms)
         off = 0;
 check_timeout:
         /* Subtract elapsed time */
-#ifdef MCUBOOT_SERIAL_WAIT_FOR_DFU
+//#ifdef MCUBOOT_SERIAL_WAIT_FOR_DFU
         elapsed_in_ms = (k_uptime_get_32() - start);
-#endif
+//#endif
         timeout_in_ms -= elapsed_in_ms;
     }
 }
@@ -1269,10 +1270,10 @@ check_timeout:
  * serial port.
  */
 void
-boot_serial_start(const struct boot_uart_funcs *f)
+boot_serial_start(const struct boot_uart_funcs *f, int timeout_in_ms)
 {
-    bs_entry = true;
-    boot_serial_read_console(f,0);
+    bs_entry = timeout_in_ms == 0;
+    boot_serial_read_console(f,timeout_in_ms);
 }
 
 #ifdef MCUBOOT_SERIAL_WAIT_FOR_DFU

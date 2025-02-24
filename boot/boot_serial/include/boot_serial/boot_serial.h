@@ -41,7 +41,7 @@ struct boot_uart_funcs {
  * Start processing newtmgr commands for uploading image0 over serial.
  * Assumes serial port is open and waits for download command.
  */
-void boot_serial_start(const struct boot_uart_funcs *f);
+void boot_serial_start(const struct boot_uart_funcs *f, int timeout_in_ms);
 
 /**
  * Start processing newtmgr commands for uploading image0 over serial.

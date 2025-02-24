@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+#define CONFIG_BOOT_SERIAL_TIMEOUT 10000
+
 #include <assert.h>
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
@@ -436,10 +438,12 @@ static void boot_serial_enter()
     BOOT_LOG_INF("Enter the serial recovery mode");
     rc = boot_console_init();
     __ASSERT(rc == 0, "Error initializing boot console.\n");
-    boot_serial_start(&boot_funcs);
+    boot_serial_start(&boot_funcs, CONFIG_BOOT_SERIAL_TIMEOUT);
     __ASSERT(0, "Bootloader serial process was terminated unexpectedly.\n");
 }
 #endif
+
+static volatile bool debug_loop = true;
 
 int main(void)
 {
@@ -468,6 +472,12 @@ int main(void)
     (void)rc;
 
     mcuboot_status_change(MCUBOOT_STATUS_STARTUP);
+
+/*
+    while (debug_loop) {
+        MCUBOOT_WATCHDOG_FEED();
+    }
+*/
 
 #ifdef CONFIG_BOOT_SERIAL_ENTRANCE_GPIO
     if (io_detect_pin() &&
