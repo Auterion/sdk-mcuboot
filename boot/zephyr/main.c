@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-#define CONFIG_BOOT_SERIAL_TIMEOUT 10000
+#define CONFIG_BOOT_SERIAL_TIMEOUT 2000
 
 #include <assert.h>
 #include <zephyr/kernel.h>
@@ -443,7 +443,7 @@ static void boot_serial_enter()
 }
 #endif
 
-static volatile bool debug_loop = true;
+static volatile bool debug_loop = false;
 
 int main(void)
 {
@@ -473,18 +473,23 @@ int main(void)
 
     mcuboot_status_change(MCUBOOT_STATUS_STARTUP);
 
-/*
+    uint32_t rr = nrfx_reset_reason_get();
+    if ((rr & NRFX_RESET_REASON_RESETPIN_MASK) == 0) {
+        boot_serial_enter();
+    }
+    //nrfx_reset_reason_clear(rr & ~NRFX_RESET_REASON_RESETPIN_MASK);
+
     while (debug_loop) {
         MCUBOOT_WATCHDOG_FEED();
     }
-*/
-
+/*
 #ifdef CONFIG_BOOT_SERIAL_ENTRANCE_GPIO
     if (io_detect_pin() &&
             !io_boot_skip_serial_recovery()) {
         boot_serial_enter();
     }
 #endif
+*/
 
 #ifdef CONFIG_BOOT_SERIAL_PIN_RESET
     if (io_detect_pin_reset()) {
