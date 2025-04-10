@@ -425,7 +425,7 @@ void zephyr_boot_log_stop(void)
         */
 
 #ifdef CONFIG_MCUBOOT_SERIAL
-static void boot_serial_enter()
+static void boot_serial_enter(int timeout_in_ms)
 {
     int rc;
 
@@ -438,7 +438,7 @@ static void boot_serial_enter()
     BOOT_LOG_INF("Enter the serial recovery mode");
     rc = boot_console_init();
     __ASSERT(rc == 0, "Error initializing boot console.\n");
-    boot_serial_start(&boot_funcs, CONFIG_BOOT_SERIAL_TIMEOUT);
+    boot_serial_start(&boot_funcs, timeout_in_ms);
     __ASSERT(0, "Bootloader serial process was terminated unexpectedly.\n");
 }
 #endif
@@ -475,7 +475,7 @@ int main(void)
 
     uint32_t rr = nrfx_reset_reason_get();
     if ((rr & NRFX_RESET_REASON_RESETPIN_MASK) == 0) {
-        boot_serial_enter();
+        boot_serial_enter(CONFIG_BOOT_SERIAL_TIMEOUT);
     }
     //nrfx_reset_reason_clear(rr & ~NRFX_RESET_REASON_RESETPIN_MASK);
 
@@ -486,14 +486,14 @@ int main(void)
 #ifdef CONFIG_BOOT_SERIAL_ENTRANCE_GPIO
     if (io_detect_pin() &&
             !io_boot_skip_serial_recovery()) {
-        boot_serial_enter();
+        boot_serial_enter(CONFIG_BOOT_SERIAL_TIMEOUT);
     }
 #endif
 */
 
 #ifdef CONFIG_BOOT_SERIAL_PIN_RESET
     if (io_detect_pin_reset()) {
-        boot_serial_enter();
+        boot_serial_enter(CONFIG_BOOT_SERIAL_TIMEOUT);
     }
 #endif
 
@@ -545,6 +545,7 @@ int main(void)
 #endif
 #endif
 
+boot_goto:
     FIH_CALL(boot_go, fih_rc, &rsp);
 
 #ifdef CONFIG_BOOT_SERIAL_BOOT_MODE
@@ -552,7 +553,7 @@ int main(void)
         /* Boot mode to stay in bootloader, clear status and enter serial
          * recovery mode
          */
-        boot_serial_enter();
+        boot_serial_enter(CONFIG_BOOT_SERIAL_TIMEOUT);
     }
 #endif
 
@@ -578,7 +579,8 @@ int main(void)
         /* No bootable image and configuration set to remain in serial
          * recovery mode
          */
-        boot_serial_enter();
+        boot_serial_enter(0);
+        goto boot_goto;
 #endif
 
         FIH_PANIC;
