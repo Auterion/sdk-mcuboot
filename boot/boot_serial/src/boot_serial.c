@@ -81,9 +81,7 @@ BOOT_LOG_MODULE_DECLARE(mcuboot);
 #define ARRAY_SIZE ZCBOR_ARRAY_SIZE
 #endif
 
-#ifndef MCUBOOT_SERIAL_MAX_RECEIVE_SIZE
-#define MCUBOOT_SERIAL_MAX_RECEIVE_SIZE 512
-#endif
+#define MCUBOOT_SERIAL_MAX_RECEIVE_SIZE 4096
 
 #ifdef MCUBOOT_SERIAL_IMG_GRP_IMAGE_STATE
 #define BOOT_SERIAL_IMAGE_STATE_SIZE_MAX 48
@@ -1247,10 +1245,12 @@ boot_serial_read_console(const struct boot_uart_funcs *f,int timeout_in_ms)
         }
         if (in_buf[0] == SHELL_NLIP_PKT_START1 &&
           in_buf[1] == SHELL_NLIP_PKT_START2) {
+            bs_entry = true; // Auterion - stop timeout if something is read
             dec_off = 0;
             rc = boot_serial_in_dec(&in_buf[2], off - 2, dec_buf, &dec_off, max_input);
         } else if (in_buf[0] == SHELL_NLIP_DATA_START1 &&
           in_buf[1] == SHELL_NLIP_DATA_START2) {
+            bs_entry = true; // Auterion - stop timeout if something is read
             rc = boot_serial_in_dec(&in_buf[2], off - 2, dec_buf, &dec_off, max_input);
         }
 

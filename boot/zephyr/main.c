@@ -28,6 +28,7 @@
 #include <zephyr/usb/usb_device.h>
 #include <soc.h>
 #include <zephyr/linker/linker-defs.h>
+#include <nrfx_clock.h>
 
 #if defined(CONFIG_BOOT_DISABLE_CACHES)
 #include <zephyr/cache.h>
@@ -450,6 +451,9 @@ int main(void)
     struct boot_rsp rsp;
     int rc;
     FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+      // Run at 128 MHz.
+    nrfx_clock_divider_set(NRF_CLOCK_DOMAIN_HFCLK, NRF_CLOCK_HFCLK_DIV_1);
 
     MCUBOOT_WATCHDOG_SETUP();
     MCUBOOT_WATCHDOG_FEED();
