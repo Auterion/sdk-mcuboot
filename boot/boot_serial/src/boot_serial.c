@@ -81,8 +81,6 @@ BOOT_LOG_MODULE_DECLARE(mcuboot);
 #define ARRAY_SIZE ZCBOR_ARRAY_SIZE
 #endif
 
-#define MCUBOOT_SERIAL_MAX_RECEIVE_SIZE 4096
-
 #ifdef MCUBOOT_SERIAL_IMG_GRP_IMAGE_STATE
 #define BOOT_SERIAL_IMAGE_STATE_SIZE_MAX 48
 #else
@@ -951,6 +949,7 @@ out:
  * Reset, and (presumably) boot to newly uploaded image. Flush console
  * before restarting.
  */
+/*
 static void
 bs_reset(char *buf, int len)
 {
@@ -958,10 +957,9 @@ bs_reset(char *buf, int len)
     if (rc == BOOT_RESET_REQUEST_HOOK_BUSY) {
 	rc = MGMT_ERR_EBUSY;
     } else {
-        /* Currently whatever else is returned it is just converted
-         * to 0/no error. Boot serial starts accepting "force" parameter
-         * in command this needs to change.
-         */
+        // Currently whatever else is returned it is just converted
+        // to 0/no error. Boot serial starts accepting "force" parameter
+        // in command this needs to change.
          rc = 0;
     }
     bs_rc_rsp(rc);
@@ -983,7 +981,7 @@ bs_reset(char *buf, int len)
 #endif
     }
 }
-
+*/
 /*
  * Parse incoming line of input from console.
  * Expect newtmgr protocol with serial transport.
