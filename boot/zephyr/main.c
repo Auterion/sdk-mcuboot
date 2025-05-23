@@ -28,6 +28,7 @@
 #include <zephyr/usb/usb_device.h>
 #include <soc.h>
 #include <zephyr/linker/linker-defs.h>
+#include <zephyr/settings/settings.h>
 #include <nrfx_clock.h>
 
 #if defined(CONFIG_BOOT_DISABLE_CACHES)
@@ -444,6 +445,67 @@ static void boot_serial_enter(int timeout_in_ms)
 }
 #endif
 
+struct direct_immediate_value {
+  size_t len;
+  void *dest;
+  uint8_t fetched;
+};
+
+static int direct_loader_immediate_value(const char *name, size_t len,
+                                         settings_read_cb read_cb, void *cb_arg,
+                                         void *param)
+{
+  const char *next;
+  size_t name_len;
+  int rc;
+  struct direct_immediate_value *one_value =
+      (struct direct_immediate_value *)param;
+  name_len = settings_name_next(name, &next);
+  if (name_len == 0) {
+    if (len == one_value->len) {
+      rc = read_cb(cb_arg, one_value->dest, len);
+      if (rc >= 0) {
+        one_value->fetched = 1;
+        return 0;
+      }
+      return rc;
+    }
+    return -EINVAL;
+  }
+  return 0;
+}
+
+int load_immediate_value(const char *name, void *dest, size_t len)
+{
+  int rc;
+  struct direct_immediate_value dov;
+
+  dov.fetched = 0;
+  dov.len = len;
+  dov.dest = dest;
+
+  rc = settings_load_subtree_direct(name, direct_loader_immediate_value,
+                                    (void *)&dov);
+  if (rc == 0) {
+    if (!dov.fetched) {
+      rc = -ENOENT;
+    }
+  }
+
+  return rc;
+}
+
+uint8_t get_upgrade_state()
+{
+    uint8_t state = 0;
+
+    if (load_immediate_value("upgrade_state", &state, sizeof(state))) {
+        return 0;
+    }
+
+    return state;
+}
+
 static volatile bool debug_loop = false;
 
 int main(void)
@@ -477,15 +539,19 @@ int main(void)
 
     mcuboot_status_change(MCUBOOT_STATUS_STARTUP);
 
-    uint32_t rr = nrfx_reset_reason_get();
-    if ((rr & NRFX_RESET_REASON_RESETPIN_MASK) == 0) {
-        boot_serial_enter(CONFIG_BOOT_SERIAL_TIMEOUT);
-    }
-    //nrfx_reset_reason_clear(rr & ~NRFX_RESET_REASON_RESETPIN_MASK);
-
     while (debug_loop) {
         MCUBOOT_WATCHDOG_FEED();
     }
+
+    settings_subsys_init();
+    settings_load();
+
+    uint8_t upgrade_state = get_upgrade_state();
+
+    if (upgrade_state == 1) {
+        boot_serial_enter(CONFIG_BOOT_SERIAL_TIMEOUT);
+    }
+
 /*
 #ifdef CONFIG_BOOT_SERIAL_ENTRANCE_GPIO
     if (io_detect_pin() &&
