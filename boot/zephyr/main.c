@@ -30,6 +30,7 @@
 #include <zephyr/linker/linker-defs.h>
 #include <zephyr/settings/settings.h>
 #include <nrfx_clock.h>
+#include "../../../../arf-a/usb_hub_helper.h"
 
 #if defined(CONFIG_BOOT_DISABLE_CACHES)
 #include <zephyr/cache.h>
@@ -542,6 +543,8 @@ int main(void)
     while (debug_loop) {
         MCUBOOT_WATCHDOG_FEED();
     }
+
+    setup_hub();
 
     settings_subsys_init();
     settings_load();
