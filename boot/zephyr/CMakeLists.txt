@@ -58,8 +58,14 @@ zephyr_library_sources(
   flash_map_extended.c
   os.c
   keys.c
-  ../../../../arf-a/usb_hub_helper.c
   )
+
+# Conditionally include USB hub helper if enabled
+if(CONFIG_ENABLE_USBHUB_HELPER)
+  zephyr_library_sources(
+    ../../../../arf-a/usb_hub_helper.c
+    )
+endif()
 
 if(DEFINED CONFIG_ENABLE_MGMT_PERUSER)
   zephyr_library_sources(
