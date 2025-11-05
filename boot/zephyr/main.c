@@ -31,7 +31,7 @@
 #include <zephyr/settings/settings.h>
 #include <nrfx_clock.h>
 #ifdef CONFIG_ENABLE_USBHUB_HELPER
-#include "../../../../arf-a/usb_hub_helper.h"
+#include "usb_hub_helper.h"
 #endif
 
 #if defined(CONFIG_BOOT_DISABLE_CACHES)

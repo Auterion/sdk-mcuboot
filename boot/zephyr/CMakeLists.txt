@@ -63,7 +63,10 @@ zephyr_library_sources(
 # Conditionally include USB hub helper if enabled
 if(CONFIG_ENABLE_USBHUB_HELPER)
   zephyr_library_sources(
-    ../../../../arf-a/usb_hub_helper.c
+    ${APPLICATION_CONFIG_DIR}/usb_hub_helper.c
+    )
+  zephyr_library_include_directories(
+    ${APPLICATION_CONFIG_DIR}
     )
 endif()
 
