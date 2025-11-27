@@ -77,6 +77,9 @@
 
 BOOT_LOG_MODULE_DECLARE(mcuboot);
 
+/* Forward declaration for nRF5340 multi-image support */
+extern int flash_area_id_from_direct_image(int image_id);
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE ZCBOR_ARRAY_SIZE
 #endif
@@ -700,7 +703,8 @@ bs_upload(char *buf, int len)
     }
 
 #if !defined(MCUBOOT_SERIAL_DIRECT_IMAGE_UPLOAD)
-    rc = flash_area_open(flash_area_id_from_multi_image_slot(img_num, 0), &fap);
+    /* nRF5340 multi-image support: use direct image mapping even in single-slot mode */
+    rc = flash_area_open(flash_area_id_from_direct_image(img_num), &fap);
 #else
     rc = flash_area_open(flash_area_id_from_direct_image(img_num), &fap);
 #endif

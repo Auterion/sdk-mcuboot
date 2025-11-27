@@ -613,9 +613,11 @@ config BOOT_INTR_VEC_RELOC
 config UPDATEABLE_IMAGE_NUMBER
 	int "Number of updateable images"
 	default 1
-	range 1 1 if SINGLE_APPLICATION_SLOT
+	range 1 2
 	help
 	  Enables support of multi image update.
+	  Note: Can be set to 2 even with SINGLE_APPLICATION_SLOT to enable
+	  network core upgrades while keeping app core in single-slot mode.
 
 config BOOT_VERSION_CMP_USE_BUILD_NUMBER
 	bool "Use build number while comparing image version"

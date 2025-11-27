@@ -66,8 +66,27 @@ static inline uint32_t __flash_area_ids_for_slot(int img, int slot)
 
 #else /* !CONFIG_SINGLE_APPLICATION_SLOT && !CONFIG_MCUBOOT_BOOTLOADER_MODE_SINGLE_APP */
 
-#define FLASH_AREA_IMAGE_PRIMARY(x)	FIXED_PARTITION_ID(slot0_partition)
-#define FLASH_AREA_IMAGE_SECONDARY(x)	FIXED_PARTITION_ID(slot0_partition)
+/* Multi-image support for single-slot mode (e.g., nRF5340 with app + network cores) */
+static inline uint32_t __flash_area_primary_single_slot(int img)
+{
+    switch (img) {
+    case 0:
+        return FIXED_PARTITION_ID(slot0_partition);
+#if FIXED_PARTITION_EXISTS(slot2_partition)
+    case 1:
+        return FIXED_PARTITION_ID(slot2_partition);
+#endif
+#if FIXED_PARTITION_EXISTS(slot4_partition)
+    case 2:
+        return FIXED_PARTITION_ID(slot4_partition);
+#endif
+    default:
+        return FIXED_PARTITION_ID(slot0_partition);
+    }
+}
+
+#define FLASH_AREA_IMAGE_PRIMARY(x)	__flash_area_primary_single_slot(x)
+#define FLASH_AREA_IMAGE_SECONDARY(x)	__flash_area_primary_single_slot(x)
 
 #endif /* CONFIG_SINGLE_APPLICATION_SLOT */
 

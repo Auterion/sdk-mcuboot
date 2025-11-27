@@ -8,6 +8,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/flash.h>
+#include <nrfx_nvmc.h>
 
 #include "target.h"
 
@@ -91,17 +92,30 @@ int flash_area_id_to_multi_image_slot(int image_index, int area_id)
     return -1;
 }
 
-#if defined(CONFIG_MCUBOOT_SERIAL_DIRECT_IMAGE_UPLOAD)
+/* nRF5340 multi-image support: Function made unconditional to support direct image upload
+ * even in single-slot mode. This bypasses the Kconfig dependency on !SINGLE_APPLICATION_SLOT.
+ */
 int flash_area_id_from_direct_image(int image_id)
 {
+    int area_id;
+    
+    BOOT_LOG_INF("flash_area_id_from_direct_image called with image_id=%d", image_id);
+    
     switch (image_id) {
     case 0:
     case 1:
-        return FIXED_PARTITION_ID(slot0_partition);
-#if FIXED_PARTITION_EXISTS(slot1_partition)
+        /* mcumgr sends image_id=1 for app core (primary image) */
+        area_id = FIXED_PARTITION_ID(slot0_partition);
+        BOOT_LOG_INF("Image %d (app core) -> area_id=%d", image_id, area_id);
+        return area_id;
     case 2:
-        return FIXED_PARTITION_ID(slot1_partition);
-#endif
+        /* Network core on nRF5340: mcumgr -n 1 sends image_id=2
+         * Write to staging area in app flash since app core cannot write to network core flash
+         * Application will copy from staging to network core via IPC
+         */
+        area_id = FIXED_PARTITION_ID(netcore_staging);
+        BOOT_LOG_INF("Image %d (network core) -> area_id=%d (staging partition)", image_id, area_id);
+        return area_id;
 #if FIXED_PARTITION_EXISTS(slot2_partition)
     case 3:
         return FIXED_PARTITION_ID(slot2_partition);
@@ -121,7 +135,6 @@ int flash_area_id_from_direct_image(int image_id)
     }
     return -EINVAL;
 }
-#endif
 
 int flash_area_sector_from_off(off_t off, struct flash_sector *sector)
 {

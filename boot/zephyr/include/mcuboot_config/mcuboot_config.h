@@ -66,7 +66,12 @@
 
 #ifdef CONFIG_SINGLE_APPLICATION_SLOT
 #define MCUBOOT_SINGLE_APPLICATION_SLOT 1
+/* Allow multi-image even in single-slot mode for network core upgrades */
+#ifdef CONFIG_UPDATEABLE_IMAGE_NUMBER
+#define MCUBOOT_IMAGE_NUMBER    CONFIG_UPDATEABLE_IMAGE_NUMBER
+#else
 #define MCUBOOT_IMAGE_NUMBER    1
+#endif
 #else
 
 #ifdef CONFIG_BOOT_SWAP_USING_MOVE

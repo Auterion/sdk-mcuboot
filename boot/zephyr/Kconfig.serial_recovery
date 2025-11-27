@@ -164,6 +164,14 @@ config BOOT_SERIAL_WAIT_FOR_DFU_TIMEOUT
 	help
 	  Timeout in ms for MCUboot to wait to allow for DFU to be invoked.
 
+config BOOT_SERIAL_TIMEOUT
+	int "Serial recovery mode timeout in ms"
+	default 60000
+	help
+	  Timeout in milliseconds for serial recovery mode. When entering serial
+	  recovery mode explicitly (via GPIO, boot mode, etc.), MCUboot will wait
+	  this duration for commands before timing out. Set to 0 for no timeout.
+
 config BOOT_SERIAL_BOOT_MODE
 	bool "Check boot mode via retention subsystem"
 	depends on RETENTION_BOOT_MODE

@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-#define CONFIG_BOOT_SERIAL_TIMEOUT 2000
-
 #include <assert.h>
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
@@ -529,6 +527,13 @@ int main(void)
     BOOT_LOG_INF("Starting Direct-XIP bootloader");
 #endif
 
+#ifdef MCUBOOT_IMAGE_NUMBER
+    BOOT_LOG_INF("MCUboot configured for %d images", MCUBOOT_IMAGE_NUMBER);
+#endif
+#ifdef CONFIG_UPDATEABLE_IMAGE_NUMBER
+    BOOT_LOG_INF("Updateable image number: %d", CONFIG_UPDATEABLE_IMAGE_NUMBER);
+#endif
+
 #ifdef CONFIG_MCUBOOT_INDICATION_LED
     /* LED init */
     io_led_init();
@@ -665,6 +670,9 @@ boot_goto:
 
     BOOT_LOG_INF("Bootloader chainload address offset: 0x%x",
                  rsp.br_image_off);
+    BOOT_LOG_INF("Flash device ID: %d", rsp.br_flash_dev_id);
+    BOOT_LOG_INF("Image header at offset: 0x%x, header size: %d",
+                 rsp.br_image_off, rsp.br_hdr->ih_hdr_size);
 
 #if defined(MCUBOOT_DIRECT_XIP)
     BOOT_LOG_INF("Jumping to the image slot");
